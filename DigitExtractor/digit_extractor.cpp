@@ -3,8 +3,8 @@
 
 #include <filesystem>
 
-#include "SudokuSolver\globals.h"
-#include "SudokuSolver\extractor.h"
+#include "SudokuSolver/globals.h"
+#include "SudokuSolver/extractor.h"
 
 int main( int argc, char** argv )
 {

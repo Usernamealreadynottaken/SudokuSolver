@@ -2,18 +2,22 @@
 
 Extractor::Extractor() : low_threshold(10), high_threshold(50), kernel_size(3),
 	theta_vertical(0.0f), theta_horizontal(1.5708f), theta_error(0.001f),
-	min_scale(0.1f), max_scale(0.7f)
+	min_scale(0.15f), max_scale(0.7f)
 { }
 
-std::vector<cv::Mat> Extractor::extract(cv::Mat image)
+std::vector<cv::Mat> Extractor::extract(cv::Mat image, int (&sudoku)[NUM_CELLS])
 {
+	lines.clear();
+	contours.clear();
+	hierarchy.clear();
+
 	std::vector<cv::Mat> digits;
 
 	cv::vector<cv::Vec2f> unfiltered_lines;
 	cv::vector<cv::vector<cv::Point>> unfiltered_contours;
-
+	
 	// thicken lines
-	cv::dilate(image, result_image, cv::Mat(), cv::Point(-1, -1), 2, 1, 1);
+	cv::dilate(image, result_image, cv::Mat(), cv::Point(-1, -1), 1, 1, 1);
 	// double blur to remove noise
 	blur( result_image, result_image, cv::Size(3,3) );
 	//blur( result_image, result_image, cv::Size(3,3) );
@@ -26,10 +30,10 @@ std::vector<cv::Mat> Extractor::extract(cv::Mat image)
 
 	// sharpen the image
 	cv::GaussianBlur(result_image, result_image, cv::Size(3, 3), 3);
-
+	
 	// find digit contours
 	cv::findContours( result_image, unfiltered_contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
-	filterContours(unfiltered_contours);
+	filterContours(unfiltered_contours, sudoku);
 
 	// show result_image
 	/*cv::Mat dst;
@@ -40,7 +44,7 @@ std::vector<cv::Mat> Extractor::extract(cv::Mat image)
 
 	// draw intermediate steps
 	//drawLines(lines, dst);
-	//drawContours(contours, image);
+	drawContours(contours, image);
 
 	// get all digits
 	// skip 0(grid)
@@ -68,7 +72,7 @@ void Extractor::filterLines(cv::vector<cv::Vec2f> & unfiltered)
 	}
 }
 
-void Extractor::filterContours(cv::vector<cv::vector<cv::Point>> & unfiltered)
+void Extractor::filterContours(cv::vector<cv::vector<cv::Point>> & unfiltered, int (&sudoku)[NUM_CELLS])
 {
 	if (!unfiltered.size()) {
 		return;
@@ -104,12 +108,14 @@ void Extractor::filterContours(cv::vector<cv::vector<cv::Point>> & unfiltered)
 		index_x = (cell.x - grid.x) / width;
 		// y part of index
 		index_y = (cell.y - grid.y) / height;
-
-		if (cell.x + cell.width < grid.x + (index_x+1) * width &&
+		
+		if (cell.x > grid.x && cell.x < grid.x + grid.width &&
+			cell.y > grid.y && cell.y < grid.y + grid.height && 
+			cell.x + cell.width < grid.x + (index_x+1) * width &&
 			cell.y + cell.height < grid.y + (index_y+1) * height) {
 				
 				index = index_x + 9 * index_y;
-				if (cell.area() > max_areas[index] && index < 81
+				if (cell.area() > max_areas[index] && index < 81 && index >= 0
 					&& cell.width < width * max_scale && cell.height < height * max_scale
 					&& cell.width > width * min_scale  && cell.height > height * min_scale) {
 
@@ -122,6 +128,11 @@ void Extractor::filterContours(cv::vector<cv::vector<cv::Point>> & unfiltered)
 	for (size_t i = 0; i < NUM_CELLS; ++i) {
 		if (max_indexes[i] > -1) {
 			contours.push_back(unfiltered[max_indexes[i]]);
+			// digit
+			sudoku[i] = -1;
+		} else {
+			// no digit
+			sudoku[i] = 0;
 		}
 	}
 }

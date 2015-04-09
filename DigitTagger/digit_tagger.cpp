@@ -6,12 +6,10 @@
 #include <fstream>
 
 #include "SudokuSolver/globals.h"
-#include "SudokuSolver/digit.h"
 
 int main( int argc, char** argv )
 {
     cv::Mat image;
-	Digit digit;
 	int digit_value = 0;
 
 	cv::namedWindow( image_window_name, cv::WINDOW_AUTOSIZE );
@@ -37,18 +35,13 @@ int main( int argc, char** argv )
 		}
 		digit_value -= 48;
 		if (digit_value > 0) {
-			digit.setImage(image);
-			digit.setValue(digit_value);
-			std::ofstream of(assets_dir + inputs_dir + start->path().string().substr(0, start->path().string().size() - 4) + ".dgt", std::ios::binary);
-			of.write((char *)&digit, sizeof(digit));
-			of.close();
+			cv::imwrite(assets_dir + inputs_dir + std::to_string(digit_value) + start->path().string().substr(0, start->path().string().size() - 4) + ".png",
+				image, compression_params);
 			std::cout << digit_value << '\n';
 		} else {
 			std::cout << "not a number\n";
 		}
 	}
-
-	// TODO validate saving
 
 	cv::waitKey(0);
     return 0;

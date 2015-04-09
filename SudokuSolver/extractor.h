@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-#define NUM_CELLS 81
+#include "globals.h"
 
 class Extractor
 {
@@ -27,12 +27,12 @@ private:
 	float min_scale;
 	float max_scale;
 protected:
+	void filterLines(cv::vector<cv::Vec2f> & unfiltered);
+	void filterContours(cv::vector<cv::vector<cv::Point>> & unfiltered, int (&sudoku)[NUM_CELLS]);
+	void drawLines(cv::vector<cv::Vec2f> & lines, cv::Mat & dst) const;
+	void drawContours(cv::vector<cv::vector<cv::Point>> & contours, cv::Mat & dst) const;
 public:
 	Extractor();
 	~Extractor() { };
-	std::vector<cv::Mat> extract(cv::Mat image);
-	void filterLines(cv::vector<cv::Vec2f> & unfiltered);
-	void filterContours(cv::vector<cv::vector<cv::Point>> & unfiltered);
-	void drawLines(cv::vector<cv::Vec2f> & lines, cv::Mat & dst) const;
-	void drawContours(cv::vector<cv::vector<cv::Point>> & contours, cv::Mat & dst) const;
+	std::vector<cv::Mat> extract(cv::Mat image, int (&sudoku)[NUM_CELLS]);
 };
