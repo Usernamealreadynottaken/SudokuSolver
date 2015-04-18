@@ -8,9 +8,9 @@
 #include "SudokuSolver/globals.h"
 #include "SudokuSolver/dbn.h"
 
-static const std::string image_name = "9image1-2.png";
-static const bool save = 1;
-static const bool load = 1;
+static const std::string image_name = "9image191-18.png";
+static const bool save = 0;
+static const bool load = 0;
 
 void saveToFile(std::vector< std::vector< std::vector<float> > > & weights, std::string file);
 void saveBiases(std::vector< std::vector<float> > & biases, std::string file);
@@ -20,6 +20,7 @@ void loadBiases(std::vector< std::vector<float> > & biases, std::string file);
 int main( int argc, char** argv )
 {
 	DBN dbn;
+	int result;
     cv::Mat image;
 	std::vector<cv::Mat> digits;
 	std::vector<std::string> inputs;
@@ -29,31 +30,63 @@ int main( int argc, char** argv )
 	for ( ; start != end; ++start) {
 		inputs.push_back(start->path().string());
 	}
-	std::random_shuffle(inputs.begin(), inputs.end());
 	
 	if (load) {
 		loadWeights(dbn.getWeights(), assets_dir + weights_file);
 		loadBiases(dbn.getBiases(), assets_dir + biases_file);
-	} else {
+	}
+	//for (int epoch = 0; epoch < NUM_EPOCHS; ++epoch) {
+	//	std::random_shuffle(inputs.begin(), inputs.end());
+	//	for (size_t i = 0; i < inputs.size(); ++i) {
+	//		std::cout << "epoch " << epoch << " #" << i << " " << inputs[i] << '\n';
+	//		image = cv::imread(assets_dir + inputs_dir + inputs[i], cv::IMREAD_GRAYSCALE);
+	//		dbn.setInput(image);
+	//		//dbn.trainPerceptron(std::stoi(inputs[i].substr(0, 1)));
+	//		//dbn.train();
+	//		//dbn.trainOutputs(std::stoi(inputs[i].substr(0, 1)));
+	//	}
+	//}
+	
+	bool done = false;
+	int iteration = 0;
+	int mistakes = 0;
+	int index;
+	while (!done) {
+		mistakes = 0;
+		done = true;
+		std::cout << "iteration " << iteration++ << '\n';
+		for (int i = 0; i < 50; ++i) {
+			index = rand() % inputs.size();
+			image = cv::imread(assets_dir + inputs_dir + inputs[index], cv::IMREAD_GRAYSCALE);
+			dbn.setInput(image);
+			dbn.trainPerceptron(std::stoi(inputs[index].substr(0, 1)));
+			//dbn.trainOutputs(std::stoi(inputs[index].substr(0, 1)));
+		}
 		for (size_t i = 0; i < inputs.size(); ++i) {
-			std::cout << "#" << i << " " << inputs[i] << '\n';
 			image = cv::imread(assets_dir + inputs_dir + inputs[i], cv::IMREAD_GRAYSCALE);
 			dbn.setInput(image);
-			dbn.train();
+			if (std::stoi(inputs[i].substr(0, 1)) != dbn.classifyByPerceptron(image)) {
+				done = false;
+				++mistakes;
+			}
 		}
-		if (save) {
-			saveToFile(dbn.getWeights(), assets_dir + weights_file);
-			saveBiases(dbn.getBiases(), assets_dir + biases_file);
-		}
+		std::cout << mistakes << " mistakes\n";
+	}
+
+	if (save) {
+		saveToFile(dbn.getWeights(), assets_dir + weights_file);
+		saveBiases(dbn.getBiases(), assets_dir + biases_file);
 	}
 
 	image = cv::imread(assets_dir + inputs_dir + image_name, cv::IMREAD_GRAYSCALE);
     cv::imshow( image_window_name, image );
 
 	// TODO test
-	dbn.classify(image);
+	std::cout << dbn.classifyByPerceptron(image);
+	/*result = dbn.classify(image);
 	cv::namedWindow( "test", cv::WINDOW_AUTOSIZE );
 	cv::imshow("test", dbn.test_image);
+	std::cout << "Classified as: " << result;*/
 
     cv::waitKey(0);
     return 0;

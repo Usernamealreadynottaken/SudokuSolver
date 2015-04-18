@@ -13,14 +13,13 @@ static const std::string weights_file = "weights.txt";
 static const std::string biases_file = "biases.txt";
 
 static const int WIDTH = 32;
-static const int NUM_LAYERS = 2;
-static const int NUM_INPUT_NEURONS = 1024;
-static const int NUM_LAYER1_NEURONS = 300;
+static const int NUM_LAYERS = 1;
+static const unsigned int NUM_NEURONS[] = {1024, 9};
 
-static const float LEARNING_RATE = 0.1f;
+static const float LEARNING_RATE = 0.001f;
 static const float STARTING_MEAN = 0.0f;
 static const float STARTING_STD = 0.01f;
-static const int NUM_EPOCHS = 20;
+static const int NUM_EPOCHS = 5;
 
 static const float sigmoid_steepness = 1.0f;
 

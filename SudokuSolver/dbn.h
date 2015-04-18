@@ -16,6 +16,7 @@ private:
 	std::vector< std::vector< std::vector<float> > > weights;
 	std::vector< std::vector<uchar> > layers;
 	std::vector< std::vector<uchar> > layers_prim;
+	std::vector< float > outputs;
 	std::vector< std::vector<float> > biases;
 	std::vector< uchar > positive_gradient;
 	std::vector< uchar > negative_gradient;
@@ -28,7 +29,10 @@ public:
 	~DBN() { }
 	void setInput(cv::Mat & image);
 	void train();
-	void classify(cv::Mat image);
+	void trainOutputs(int desired);
+	void trainPerceptron(int desired);
+	int classify(cv::Mat image);
+	int classifyByPerceptron(cv::Mat image);
 	std::vector< std::vector< std::vector<float> > > & getWeights();
 	std::vector< std::vector<float> > & getBiases();
 

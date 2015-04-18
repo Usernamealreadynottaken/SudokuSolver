@@ -7,90 +7,85 @@ DBN::DBN() : learning_rate(LEARNING_RATE), starting_mean(STARTING_MEAN), startin
 	std::default_random_engine generator;
 	std::normal_distribution<float> distribution(starting_mean, starting_std);
 
-	for (int i = 0; i < NUM_LAYERS - 1; ++i) {
+	for (int i = 0; i < NUM_LAYERS; ++i) {
 		weights.push_back(std::vector< std::vector<float> >());
 		layers.push_back(std::vector<uchar>());
 		layers_prim.push_back(std::vector<uchar>());
 		biases.push_back(std::vector<float>());
 	}
-	layers.push_back(std::vector<uchar>());
-	layers_prim.push_back(std::vector<uchar>());
 	biases.push_back(std::vector<float>());
 
-	for (int i = 0; i < NUM_INPUT_NEURONS; ++i) {
-		layers[0].push_back(0);
-		layers_prim[0].push_back(0);
-		biases[1].push_back(0.0f);
-	}
-
-	for (int v = 0; v < NUM_INPUT_NEURONS; ++v) {
-		weights[0].push_back(std::vector<float>());
-		for (int h = 0; h < NUM_LAYER1_NEURONS; ++h) {
-			weights[0][v].push_back(distribution(generator));
+	for (size_t i = 0; i < NUM_LAYERS; ++i) {
+		for (size_t v = 0; v < NUM_NEURONS[i]; ++v) {
+			layers[i].push_back(0);
+			layers_prim[i].push_back(0);
+			// TODO generalize
+			biases[1-i].push_back(0.0f);
+			weights[i].push_back(std::vector<float>());
+			for (size_t h = 0; h < NUM_NEURONS[i+1]; ++h) {
+				weights[i][v].push_back(distribution(generator));
+			}
 		}
 	}
 
-	for (int i = 0; i < NUM_LAYER1_NEURONS; ++i) {
-		layers[1].push_back(0);
-		layers_prim[1].push_back(0);
-		biases[0].push_back(0.0f);
+	for (size_t i = 0; i < NUM_NEURONS[NUM_LAYERS]; ++i) {
+		biases[NUM_LAYERS].push_back(0.0f);
 	}
 
-	positive_gradient.reserve(NUM_INPUT_NEURONS * NUM_LAYER1_NEURONS);
-	negative_gradient.reserve(NUM_INPUT_NEURONS * NUM_LAYER1_NEURONS);
-	for (size_t i = 0; i < NUM_INPUT_NEURONS * NUM_LAYER1_NEURONS; ++i) {
+	positive_gradient.reserve(NUM_NEURONS[0] * NUM_NEURONS[1]);
+	negative_gradient.reserve(NUM_NEURONS[0] * NUM_NEURONS[1]);
+	for (size_t i = 0; i < NUM_NEURONS[0] * NUM_NEURONS[1]; ++i) {
 		positive_gradient.push_back(0);
 		negative_gradient.push_back(0);
+	}
+	outputs.reserve(NUM_NEURONS[NUM_LAYERS]);
+	for (size_t i = 0; i < NUM_NEURONS[NUM_LAYERS]; ++i) {
+		outputs.push_back(0.0f);
 	}
 }
 
 void DBN::train()
 {
-	for (int i = 0; i < num_epochs; ++i) {
+	calculateH();
 
-		calculateH();
-
-		// positive gradient
-		for (int v = 0; v < NUM_INPUT_NEURONS; ++v) {
-			for (int h = 0; h < NUM_LAYER1_NEURONS; ++h) {
-				positive_gradient[h * NUM_INPUT_NEURONS + v] = layers[0][v] * layers[1][h];
-			}
+	// positive gradient
+	for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
+		for (size_t h = 0; h < NUM_NEURONS[1]; ++h) {
+			positive_gradient[h * NUM_NEURONS[0] + v] = layers[0][v] * layers[1][h];
 		}
-
-		calculateVPrim();
-
-		calculateHPrim();
-
-		// negative gradient
-		for (int v = 0; v < NUM_INPUT_NEURONS; ++v) {
-			for (int h = 0; h < NUM_LAYER1_NEURONS; ++h) {
-				negative_gradient[h * NUM_INPUT_NEURONS + v] = layers_prim[0][v] * layers_prim[1][h];
-			}
-		}
-
-		// update weights
-		for (int v = 0; v < NUM_INPUT_NEURONS; ++v) {
-			for (int h = 0; h < NUM_LAYER1_NEURONS; ++h) {
-				weights[0][v][h] += learning_rate * (positive_gradient[h * NUM_INPUT_NEURONS + v] - negative_gradient[h * NUM_INPUT_NEURONS + v]);
-			}
-		}
-		// biases, not sure if correct
-		for (int v = 0; v < NUM_INPUT_NEURONS; ++v) {
-			biases[1][v] += learning_rate * (layers[0][v] - layers_prim[0][v]);
-		}
-		for (int h = 0; h < NUM_LAYER1_NEURONS; ++h) {
-			biases[0][h] += learning_rate * (layers[1][h] - layers_prim[1][h]);
-		}
-
 	}
 
+	calculateVPrim();
+
+	calculateHPrim();
+
+	// negative gradient
+	for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
+		for (size_t h = 0; h < NUM_NEURONS[1]; ++h) {
+			negative_gradient[h * NUM_NEURONS[0] + v] = layers_prim[0][v] * layers_prim[1][h];
+		}
+	}
+
+	// update weights
+	for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
+		for (size_t h = 0; h < NUM_NEURONS[1]; ++h) {
+			weights[0][v][h] += learning_rate * (positive_gradient[h * NUM_NEURONS[0] + v] - negative_gradient[h * NUM_NEURONS[0] + v]);
+		}
+	}
+	// biases, not sure if correct
+	for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
+		biases[1][v] += learning_rate * (layers[0][v] - layers_prim[0][v]);
+	}
+	for (size_t h = 0; h < NUM_NEURONS[1]; ++h) {
+		biases[0][h] += learning_rate * (layers[1][h] - layers_prim[1][h]);
+	}
 }
 
 void DBN::calculateH()
 {
-	for (int h = 0; h < NUM_LAYER1_NEURONS; ++h) {
+	for (size_t h = 0; h < NUM_NEURONS[1]; ++h) {
 		float value = biases[0][h];
-		for (int v = 0; v < NUM_INPUT_NEURONS; ++v) {
+		for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
 			value += weights[0][v][h] * layers[0][v];
 		}
 		value = 1 / (1 + pow(e, -sigmoid_steepness * value));
@@ -104,9 +99,9 @@ void DBN::calculateH()
 
 void DBN::calculateVPrim()
 {
-	for (int v = 0; v < NUM_INPUT_NEURONS; ++v) {
+	for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
 		float value = biases[1][v];
-		for (int h = 0; h < NUM_LAYER1_NEURONS; ++h) {
+		for (size_t h = 0; h < NUM_NEURONS[1]; ++h) {
 			value += weights[0][v][h] * layers[1][h];
 		}
 		value = 1 / (1 + pow(e, -sigmoid_steepness * value));
@@ -120,9 +115,9 @@ void DBN::calculateVPrim()
 
 void DBN::calculateHPrim()
 {
-	for (int h = 0; h < NUM_LAYER1_NEURONS; ++h) {
+	for (size_t h = 0; h < NUM_NEURONS[1]; ++h) {
 		float value = biases[0][h];
-		for (int v = 0; v < NUM_INPUT_NEURONS; ++v) {
+		for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
 			value += weights[0][v][h] * layers_prim[0][v];
 		}
 		value = 1 / (1 + pow(e, -sigmoid_steepness * value));
@@ -134,16 +129,124 @@ void DBN::calculateHPrim()
 	}
 }
 
-void DBN::classify(cv::Mat image)
+void DBN::trainOutputs(int desired)
+{
+	// change number to index
+	--desired;
+
+	float value;
+	float values[9];
+	float max = -99999.0f;
+	int max_index = 0;
+
+	calculateH();
+	for (size_t h = 0; h < NUM_NEURONS[2]; ++h) {
+		value = biases[2][h];
+		for (size_t v = 0; v < NUM_NEURONS[1]; ++v) {
+			value += weights[1][v][h] * layers[1][v];
+		}
+		value = 1 / (1 + pow(e, -sigmoid_steepness * value));
+		outputs[h] = value;
+
+		if (h == desired) {
+			value = 1.0f - outputs[h];
+		} else {
+			value = 0.0f - outputs[h];
+			value *= 0.125f;
+		}
+		values[h] = value;
+		if (outputs[h] > max) {
+			max = outputs[h];
+			max_index = h;
+		}
+	}
+	
+	if (desired != max_index) {
+		for (size_t h = 0; h < NUM_NEURONS[2]; ++h) {
+			for (size_t v = 0; v < NUM_NEURONS[1]; ++v) {
+				weights[1][v][h] += learning_rate * values[h];
+			}
+			biases[2][h] += learning_rate * values[h];
+		}
+	}
+}
+
+void DBN::trainPerceptron(int desired)
+{
+	--desired;
+	float value;
+	for (size_t h = 0; h < NUM_NEURONS[1]; ++h) {
+		value = biases[1][h];
+		for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
+			value += weights[0][v][h] * layers[0][v];
+		}
+		value = 1 / (1 + pow(e, -sigmoid_steepness * value));
+		outputs[h] = value;
+
+		if (h == desired) {
+			value = 1.0f - outputs[h];
+		} else {
+			value = 0.0f - outputs[h];
+		}
+		
+		for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
+			if (layers[0][v])
+				weights[0][v][h] += learning_rate * value;
+		}
+		biases[1][h] += learning_rate * value;
+	}
+}
+
+int DBN::classify(cv::Mat image)
 {
 	setInput(image);
 	calculateH();
-	calculateVPrim();
+	float value;
+	float max = 0.0f;
+	int result = 0;
+	for (size_t h = 0; h < NUM_NEURONS[2]; ++h) {
+		value = biases[2][h];
+		for (size_t v = 0; v < NUM_NEURONS[1]; ++v) {
+			value += weights[1][v][h] * layers[1][v];
+		}
+		value = 1 / (1 + pow(e, -sigmoid_steepness * value));
+		outputs[h] = value;
+		if (value > max) {
+			max = value;
+			result = h;
+		}
+	}
 
 	// TODO classify
-	for (int i = 0; i < NUM_INPUT_NEURONS; ++i) {
+	calculateVPrim();
+	for (size_t i = 0; i < NUM_NEURONS[0]; ++i) {
 		test_image.at<uchar>( i / 32, i % 32) = layers_prim[0][i] * 255;
 	}
+
+	return result + 1;
+}
+
+int DBN::classifyByPerceptron(cv::Mat image)
+{
+	setInput(image);
+	float value;
+	float max = 0.0f;
+	int result = 0;
+	for (size_t h = 0; h < NUM_NEURONS[1]; ++h) {
+		value = biases[1][h];
+		for (size_t v = 0; v < NUM_NEURONS[0]; ++v) {
+			value += weights[0][v][h] * layers[0][v];
+		}
+		value = 1 / (1 + pow(e, -sigmoid_steepness * value));
+		outputs[h] = value;
+		
+		if (value > max) {
+			max = value;
+			result = h;
+		}
+	}
+
+	return result + 1;
 }
 
 void DBN::setInput(cv::Mat & image)
