@@ -21,18 +21,16 @@ private:
 	std::vector< uchar > positive_gradient;
 	std::vector< uchar > negative_gradient;
 protected:
-	void calculateH();
-	void calculateVPrim();
-	void calculateHPrim();
+	void calculateH(int n);
+	void calculateVPrim(int n);
+	void calculateHPrim(int n);
 public:
 	DBN();
 	~DBN() { }
 	void setInput(cv::Mat & image);
-	void train();
+	void train(int layer);
 	void trainOutputs(int desired);
-	void trainPerceptron(int desired);
-	int classify(cv::Mat image);
-	int classifyByPerceptron(cv::Mat image);
+	int classify(cv::Mat & image);
 	std::vector< std::vector< std::vector<float> > > & getWeights();
 	std::vector< std::vector<float> > & getBiases();
 

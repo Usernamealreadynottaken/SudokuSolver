@@ -28,7 +28,6 @@ std::vector<cv::Mat> Extractor::extract(cv::Mat image, int (&sudoku)[NUM_CELLS])
 	//cv::HoughLines(result_image, unfiltered_lines, 1, CV_PI / 180, 100, 0, 0);
 	//filterLines(unfiltered_lines);
 
-	// sharpen the image
 	cv::GaussianBlur(result_image, result_image, cv::Size(3, 3), 3);
 	
 	// find digit contours
@@ -48,7 +47,7 @@ std::vector<cv::Mat> Extractor::extract(cv::Mat image, int (&sudoku)[NUM_CELLS])
 
 	// get all digits
 	// skip 0(grid)
-	cv::Size size(32, 32);
+	cv::Size size(WIDTH, HEIGHT);
 	cv::Mat src;
 	for (size_t i = 1; i < contours.size(); ++i) {
 		src = cv::Mat(image, cv::boundingRect(contours[i]));
