@@ -8,13 +8,17 @@
 #include "dbn.h"
 #include "solver.h"
 
-static const std::string image_name = "simple1.jpg";
+static std::string image_name = "simple1.jpg";
 
 void loadWeights(std::vector< std::vector< std::vector<float> > > & weights, std::string file);
 void loadBiases(std::vector< std::vector<float> > & biases, std::string file);
 
 int main( int argc, char** argv )
 {
+	if (argc == 2) {
+		image_name = argv[1];
+	}
+
 	int sudoku[NUM_CELLS];
 	
 	Extractor extractor;
@@ -36,36 +40,39 @@ int main( int argc, char** argv )
 
 	int decision;
 	int iterator = 0;
-	for (int i = 0; i < 9; ++i) {
-		for (int j = 0; j < 9; ++j) {
+	for (int i = 0; i < NUM_COLUMNS; ++i) {
+		for (int j = 0; j < NUM_ROWS; ++j) {
 
-			if (sudoku[9 * i + j] == -1) {
+			if (sudoku[NUM_COLUMNS * i + j] == -1) {
 				decision = dbn.classify(digits[iterator]);
 				++iterator;
-				sudoku[9 * i + j] = decision;
+				sudoku[NUM_COLUMNS * i + j] = decision;
 			}
 
 		}
 	}
 
 	std::cout << "\nRecognized: \n";
-	for (int i = 0; i < 9; ++i) {
-		for (int j = 0; j < 9; ++j) {
-			std::cout << sudoku[9 * i + j] << " ";
+	for (int i = 0; i < NUM_COLUMNS; ++i) {
+		for (int j = 0; j < NUM_ROWS; ++j) {
+			std::cout << sudoku[NUM_COLUMNS * i + j] << " ";
 		}
 		std::cout << '\n';
 	}
 
-	solver.solve(sudoku);
-	std::cout << "\nSolved: \n";
-	for (int i = 0; i < 9; ++i) {
-		for (int j = 0; j < 9; ++j) {
-			std::cout << sudoku[9 * i + j] << " ";
+	if (solver.solve(sudoku)) {
+		std::cout << "\nSolved: \n";
+		for (int i = 0; i < NUM_COLUMNS; ++i) {
+			for (int j = 0; j < NUM_ROWS; ++j) {
+				std::cout << sudoku[NUM_COLUMNS * i + j] << " ";
+			}
+			std::cout << '\n';
 		}
-		std::cout << '\n';
+	} else {
+		std::cout << "\nCouldn't solve :(\n";
 	}
 
-	// TODO draw results
+	extractor.drawResults(image, sudoku);
 
     cv::waitKey(0);
     return 0;

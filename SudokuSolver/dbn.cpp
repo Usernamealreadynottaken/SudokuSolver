@@ -180,7 +180,7 @@ int DBN::classify(cv::Mat & image)
 		}
 	}
 
-	// TODO remove
+	// check how many neurons hidden layer reconstructed correctly
 	/*calculateVPrim(NUM_LAYERS - 2);
 	int correct = 0;
 	for (int i = 0; i < NUM_NEURONS[NUM_LAYERS - 3]; ++i) {
@@ -219,7 +219,6 @@ void DBN::setInput(cv::Mat & image)
 		}
 	}
 
-	// TODO remove
 	//test_image = image;
 }
 

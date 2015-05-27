@@ -89,8 +89,9 @@ void Extractor::filterContours(cv::vector<cv::vector<cv::Point>> & unfiltered, i
 	contours.push_back(unfiltered[max_index]);
 
 	cv::Rect grid = cv::boundingRect(unfiltered[max_index]);
-	int width = grid.width / 9;
-	int height = grid.height / 9;
+	puzzle = grid;
+	int width = grid.width / NUM_COLUMNS;
+	int height = grid.height / NUM_ROWS;
 
 	for (int i = 0; i < NUM_CELLS; ++i) {
 		max_indexes[i] = -1;
@@ -113,8 +114,8 @@ void Extractor::filterContours(cv::vector<cv::vector<cv::Point>> & unfiltered, i
 			cell.x + cell.width < grid.x + (index_x+1) * width &&
 			cell.y + cell.height < grid.y + (index_y+1) * height) {
 				
-				index = index_x + 9 * index_y;
-				if (cell.area() > max_areas[index] && index < 81 && index >= 0
+				index = index_x + NUM_COLUMNS * index_y;
+				if (cell.area() > max_areas[index] && index < NUM_CELLS && index >= 0
 					&& cell.width < width * max_scale && cell.height < height * max_scale
 					&& cell.width > width * min_scale  && cell.height > height * min_scale) {
 
@@ -169,6 +170,27 @@ void Extractor::drawContours(cv::vector<cv::vector<cv::Point>> & contours, cv::M
 		rectangle(dst, cv::boundingRect(contours[i]), cv::Scalar(0, 255, 0), 1, CV_AA);
 	}
 
-	cv::namedWindow( "digits", cv::WINDOW_AUTOSIZE );
-    cv::imshow( "digits", dst );
+	cv::namedWindow( image_window_name, cv::WINDOW_AUTOSIZE );
+    cv::imshow( image_window_name, dst );
+}
+
+void Extractor::drawResults(cv::Mat & image, int sudoku[NUM_CELLS])
+{
+	int fontFace = cv::FONT_HERSHEY_PLAIN;
+	double fontScale = 2;
+	int thickness = 3;  
+	cv::Point textOrg;
+	int width = puzzle.width / NUM_COLUMNS;
+	int height = puzzle.height / NUM_ROWS;
+	for (int i = 0; i < NUM_COLUMNS; ++i) {
+		for (int j = 0; j < NUM_ROWS; ++j) {
+			if (sudoku[NUM_CELLS] != 0) {
+				textOrg.x = puzzle.x + width * j + 10;
+				textOrg.y = puzzle.y + height * (i + 1) - 5;
+				cv::putText(image, std::to_string(sudoku[NUM_COLUMNS * i + j]), textOrg, 
+					fontFace, fontScale, cv::Scalar(255, 0, 0), thickness, 8);
+			}
+		}
+	}
+	cv::imshow(image_window_name, image);
 }

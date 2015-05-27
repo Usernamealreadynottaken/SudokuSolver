@@ -26,6 +26,7 @@ private:
 	int max_areas[NUM_CELLS];
 	float min_scale;
 	float max_scale;
+	cv::Rect puzzle;
 protected:
 	void filterLines(cv::vector<cv::Vec2f> & unfiltered);
 	void filterContours(cv::vector<cv::vector<cv::Point>> & unfiltered, int (&sudoku)[NUM_CELLS]);
@@ -35,4 +36,5 @@ public:
 	Extractor();
 	~Extractor() { };
 	std::vector<cv::Mat> extract(cv::Mat image, int (&sudoku)[NUM_CELLS]);
+	void drawResults(cv::Mat & image, int sudoku[NUM_CELLS]);
 };

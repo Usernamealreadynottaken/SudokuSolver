@@ -7,10 +7,12 @@
 static const std::string image_window_name = "Original";
 static const std::string assets_dir = "../assets/";
 static const std::string puzzles_dir = "puzzles/";
-static const std::string digits_dir = "digits/";
-static const std::string training_dir = "training/";
-static const std::string inputs_dir = "tagged/";
-static const std::string inputs_small_dir = "tagged_small/";
+static const std::string digits_dir = "test_digits/";
+static const std::string training_dir = "training_puzzles/";
+static const std::string test_dir = "test/";
+static const std::string test_puzzles_dir = "test_puzzles/";
+static const std::string inputs_dir = "training/";
+static const std::string inputs_small_dir = "training_small/";
 static const std::string weights_file = "weights.txt";
 static const std::string biases_file = "biases.txt";
 
@@ -19,7 +21,8 @@ static const int HEIGHT = 32;
 static const unsigned int NUM_INPUTS = WIDTH * HEIGHT;
 static const unsigned int NUM_OUTPUTS = 9;
 
-static const unsigned int NUM_NEURONS[] = {NUM_INPUTS, 500, 500, 500, NUM_OUTPUTS};
+// edit to change number of hidden layers
+static const unsigned int NUM_NEURONS[] = {NUM_INPUTS, 500, NUM_OUTPUTS};
 
 static const int NUM_LAYERS = sizeof(NUM_NEURONS) / sizeof(unsigned int);
 static const float LEARNING_RATE = 0.001f;

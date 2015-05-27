@@ -10,5 +10,5 @@ protected:
 public:
 	Solver();
 	~Solver() { }
-	void solve(int * sudoku);
+	bool solve(int * sudoku);
 };

@@ -17,10 +17,10 @@ int main( int argc, char** argv )
 	cv::namedWindow( image_window_name, cv::WINDOW_AUTOSIZE );
 	std::vector<int> compression_params;
 	compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
-	std::tr2::sys::directory_iterator start(assets_dir + training_dir), end;
+	std::tr2::sys::directory_iterator start(assets_dir + test_puzzles_dir), end;
 	for ( ; start != end; ++start) {
-		std::cout << assets_dir + training_dir + start->path().string() << '\n';
-		image = cv::imread(assets_dir + training_dir + start->path().string(), cv::IMREAD_GRAYSCALE);
+		std::cout << assets_dir + test_puzzles_dir + start->path().string() << '\n';
+		image = cv::imread(assets_dir + test_puzzles_dir + start->path().string(), cv::IMREAD_GRAYSCALE);
 		cv::imshow( image_window_name, image );
 		digits = extractor.extract(image, sudoku);
 

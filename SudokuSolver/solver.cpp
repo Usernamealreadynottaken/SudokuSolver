@@ -65,7 +65,7 @@ bool Solver::checkConstraints(int * sudoku, int empty, int value)
 	return true;
 }
 
-void Solver::solve(int * sudoku)
+bool Solver::solve(int * sudoku)
 {
-	backtracking(sudoku, 0);
+	return backtracking(sudoku, 0);
 }

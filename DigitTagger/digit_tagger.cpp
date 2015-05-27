@@ -35,7 +35,7 @@ int main( int argc, char** argv )
 		}
 		digit_value -= 48;
 		if (digit_value > 0) {
-			cv::imwrite(assets_dir + inputs_dir + std::to_string(digit_value) + start->path().string().substr(0, start->path().string().size() - 4) + ".png",
+			cv::imwrite(assets_dir + test_dir + std::to_string(digit_value) + start->path().string().substr(0, start->path().string().size() - 4) + ".png",
 				image, compression_params);
 			std::cout << digit_value << '\n';
 		} else {
